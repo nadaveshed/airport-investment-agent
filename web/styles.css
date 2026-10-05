@@ -185,6 +185,7 @@ button:disabled {
   border-collapse: collapse;
   display: block;
   overflow-x: auto;
+  overflow-wrap: normal;
   font-size: 0.9rem;
   margin: 0.5rem 0;
 }
@@ -330,8 +331,5 @@ button:disabled {
 @media (max-width: 600px) {
   .message.user {
     max-width: 92%;
-  }
-  .toggle span {
-    display: none;
   }
 }

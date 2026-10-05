@@ -1,0 +1,37 @@
+[
+  {
+    "code": "SFO",
+    "constraint": "Closely spaced parallel runways (centerlines ~750 ft apart). Side-by-side approaches were ended by the FAA on 2026-03-30; staggered approaches (from 2026-08-12) allow up to ~42 arrivals/hour, versus ~54 previously, and ~30–36 in low visibility.",
+    "impact": "Arrival capacity, not passenger demand, is the binding constraint. Demand that cannot be scheduled shows up as high load factors, NAS delays and ground delay programs.",
+    "sourceUrl": "https://piedmontexedra.com/2026/08/faa-approves-staggered-arrival-procedures-for-sfo-slightly-boosting-landing-capacity",
+    "curated": true
+  },
+  {
+    "code": "SNA",
+    "constraint": "John Wayne Airport Settlement Agreement (amended 2014): passenger cap of 11.8 million annual passengers from 2021, possibly up to 12.5M from 2026; a limit on daily commercial departures; and a nighttime curfew (no scheduled departures 10pm–7am) through 2035.",
+    "impact": "Growth is capped by regulation, not by infrastructure. Terminal expansion alone cannot add flights while the agreement stands.",
+    "sourceUrl": "https://ahsc.scag.ca.gov/sites/default/files/2024-05/atac082814_johnwayneairportsettlement.pdf",
+    "curated": true
+  },
+  {
+    "code": "JFK",
+    "constraint": "FAA/IATA Level 3 slot-controlled airport.",
+    "impact": "New flights require slots, so terminal investment does not translate directly into more flights.",
+    "sourceUrl": "https://www.faa.gov/about/office_org/headquarters_offices/ato/service_units/systemops/perf_analysis/slot_administration",
+    "curated": true
+  },
+  {
+    "code": "LGA",
+    "constraint": "Operations limited by FAA Order (equivalent to Level 3 slot control).",
+    "impact": "Flight growth is capped administratively, so additional demand appears as higher fares and load factors.",
+    "sourceUrl": "https://www.faa.gov/about/office_org/headquarters_offices/ato/service_units/systemops/perf_analysis/slot_administration",
+    "curated": true
+  },
+  {
+    "code": "DCA",
+    "constraint": "Operations limited by FAA High Density Rule slots (equivalent to Level 3 slot control).",
+    "impact": "Flight growth is capped administratively, so additional demand appears as higher fares and load factors.",
+    "sourceUrl": "https://www.faa.gov/about/office_org/headquarters_offices/ato/service_units/systemops/perf_analysis/slot_administration",
+    "curated": true
+  }
+]

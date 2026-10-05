@@ -67,11 +67,13 @@ export class Agent {
       ];
       const forceAnswer = round >= this.options.maxToolRounds;
       const result = await this.complete(messages, forceAnswer, provider, signal, onEvent);
-      provider = result.provider; // stay on one provider within a turn
+      provider = result.provider; // prefer one provider within a turn
       added.push(result.message);
 
       const calls = result.message.tool_calls ?? [];
       if (calls.length === 0) return added;
+      // Keep any preamble ("Let me look that up") from running into the next round's text.
+      if (result.message.content) onEvent?.({ type: 'text', delta: '\n\n' });
 
       for (const call of calls as ToolCall[]) {
         onEvent?.({
@@ -102,7 +104,10 @@ export class Agent {
     signal: AbortSignal | undefined,
     onEvent: RunOptions['onEvent'],
   ): Promise<{ provider: LlmProvider; message: ChatCompletionAssistantMessageParam }> {
-    const candidates = pinned ? [pinned] : this.providers;
+    // The pinned provider goes first, but a mid-turn outage still falls back to the others.
+    const candidates = pinned
+      ? [pinned, ...this.providers.filter((p) => p !== pinned)]
+      : this.providers;
     let lastError: unknown;
 
     for (const provider of candidates) {
@@ -110,14 +115,14 @@ export class Agent {
         const stream = await provider.client.chat.completions.create(
           {
             model: provider.model,
-            messages,
+            messages: provider.name === 'gemini' ? withThoughtSignatures(messages) : messages,
             tools: this.tools.definitions,
             tool_choice: forceAnswer ? 'none' : 'auto',
             stream: true,
           },
           { signal },
         );
-        if (!pinned)
+        if (provider !== pinned)
           onEvent?.({ type: 'provider', provider: provider.name, model: provider.model });
         return { provider, message: await accumulate(stream, onEvent) };
       } catch (err) {
@@ -131,6 +136,25 @@ export class Agent {
     }
     throw toAppError(lastError);
   }
+}
+
+/**
+ * Gemini 3 rejects tool calls without a thought signature, which is the case for calls another
+ * provider made after a fallback. Google documents this placeholder for such foreign calls.
+ */
+const FOREIGN_SIGNATURE = { google: { thought_signature: 'skip_thought_signature_validator' } };
+
+function withThoughtSignatures(messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((m) =>
+    m.role === 'assistant' && m.tool_calls?.some((c) => !(c as ToolCall).extra_content)
+      ? {
+          ...m,
+          tool_calls: m.tool_calls.map((c) =>
+            (c as ToolCall).extra_content ? c : { ...c, extra_content: FOREIGN_SIGNATURE },
+          ),
+        }
+      : m,
+  );
 }
 
 /** Rebuilds a full assistant message (text and tool calls) from streamed deltas. */

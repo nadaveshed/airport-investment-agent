@@ -14,6 +14,7 @@ export interface YearlyTraffic {
 export interface DelayStats {
   periodStart: string; // YYYY-MM
   periodEnd: string; // YYYY-MM
+  /** Scheduled arrivals, including those later cancelled or diverted (BTS `arr_flights`). */
   arrivals: number;
   delayed15: number;
   /** Arrivals delayed primarily by the National Aviation System: volume, ATC, airport operations. */

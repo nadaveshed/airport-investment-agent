@@ -93,6 +93,12 @@ export const routeMixSchema = z.object({
 });
 export type RouteMixInput = z.infer<typeof routeMixSchema>;
 
+export const routeSchema = z.object({
+  from: airportCodeSchema.describe('Origin IATA code; may be a foreign airport, e.g. "TLV"'),
+  to: airportCodeSchema.describe('Destination IATA code; may be a foreign airport'),
+});
+export type RouteInput = z.infer<typeof routeSchema>;
+
 /* REST adapters: query strings arrive as strings, so lists are comma-separated and numbers are coerced. */
 
 /** Item validation happens in the piped service schema. */

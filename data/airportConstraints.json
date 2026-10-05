@@ -33,5 +33,12 @@
     "impact": "Flight growth is capped administratively, so additional demand appears as higher fares and load factors.",
     "sourceUrl": "https://www.faa.gov/about/office_org/headquarters_offices/ato/service_units/systemops/perf_analysis/slot_administration",
     "curated": true
+  },
+  {
+    "code": "EWR",
+    "constraint": "FAA order limits scheduled operations to 36 arrivals and 36 departures per hour (72 total), 6:00–22:59 ET, in place since 2025 and extended through 2027-10-30 (Federal Register 2026-12589). The cap stems from New York airspace controller shortages and runway construction; Newark previously handled 80+ operations per hour.",
+    "impact": "New scheduled flights cannot be added while the order stands, so terminal investment does not translate directly into more flights. Unserved demand shows up as high load factors and fares.",
+    "sourceUrl": "https://www.federalregister.gov/d/2026-12589",
+    "curated": true
   }
 ]

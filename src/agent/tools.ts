@@ -5,6 +5,7 @@ import {
   compareAirportsSchema,
   rankAirportsSchema,
   routeMixSchema,
+  routeSchema,
   searchAirportsSchema,
 } from '../schemas/airport.schema.js';
 import type { AirportService } from '../services/airport.service.js';
@@ -69,6 +70,13 @@ export function createTools(services: ToolServices): Tool[] {
         'Long-haul vs short-haul split of departing flights, for passenger, all-cargo and all flights, plus top long-haul routes and international share.',
       schema: routeMixSchema,
       handler: (input) => services.routeMix.get(input),
+    }),
+    defineTool({
+      name: 'get_route',
+      description:
+        'Traffic on one airport pair in both directions: departures, passengers, seats, load factor, freight and distance. Works for international routes with one US end (e.g. JFK-TLV); also lists the other US airports serving that foreign airport.',
+      schema: routeSchema,
+      handler: (input) => services.routeMix.route(input),
     }),
     defineTool({
       name: 'get_live_status',

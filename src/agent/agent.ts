@@ -111,6 +111,7 @@ export class Agent {
     let lastError: unknown;
 
     for (const provider of candidates) {
+      let streamedChars = 0;
       try {
         const stream = await provider.client.chat.completions.create(
           {
@@ -124,8 +125,14 @@ export class Agent {
         );
         if (provider !== pinned)
           onEvent?.({ type: 'provider', provider: provider.name, model: provider.model });
-        return { provider, message: await accumulate(stream, onEvent) };
+        const message = await accumulate(stream, (event) => {
+          if (event.type === 'text') streamedChars += event.delta.length;
+          onEvent?.(event);
+        });
+        return { provider, message };
       } catch (err) {
+        // The UI already received these chunks. Roll them back before a fallback or error.
+        if (streamedChars) onEvent?.({ type: 'text_reset', removeChars: streamedChars });
         if (signal?.aborted || !isRetryable(err)) throw toAppError(err);
         logger.warn('LLM provider failed, trying fallback', {
           provider: provider.name,

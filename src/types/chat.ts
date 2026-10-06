@@ -16,4 +16,6 @@ export type AgentEvent =
   | { type: 'provider'; provider: string; model: string }
   | { type: 'tool_call'; id: string; name: string; args: unknown }
   | { type: 'tool_result'; id: string; name: string; ok: boolean; result: unknown }
-  | { type: 'text'; delta: string };
+  | { type: 'text'; delta: string }
+  /** Remove only the failed completion's text, keeping earlier successful rounds. */
+  | { type: 'text_reset'; removeChars: number };

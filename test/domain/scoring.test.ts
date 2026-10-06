@@ -75,7 +75,7 @@ test('ranking is deterministic and breaks ties by code', () => {
   const second = rankAirports([...twins].reverse(), universe, twoKpiIndex);
   assert.deepEqual(first, second);
   assert.deepEqual(
-    first.map((r) => [r.code, r.rank]),
+    first.map((r) => [r.code, r.selectionRank]),
     [
       ['AAA', 1],
       ['ZZZ', 2],

@@ -65,6 +65,20 @@ test('weight overrides are re-normalized and unknown KPIs are rejected', () => {
   );
 });
 
+test('single-airport and pair rankings keep their selection position separate from national rank', () => {
+  const single = scoring.rank(rankAirportsSchema.parse({ codes: ['SFO'], index: 'unmetDemand' }));
+  const sfo = single.results[0]!;
+  assert.equal(sfo.selectionRank, 1);
+  assert.equal(sfo.selectionSize, 1);
+  assert.equal(sfo.nationalRank, 16);
+  assert.equal(sfo.nationalSize, repo.all().length);
+  const pair = scoring.compare({ codes: ['LAX', 'SFO'], index: 'unmetDemand' });
+  assert.equal(pair.results[0]!.code, 'SFO');
+  assert.equal(pair.results[0]!.selectionSize, 2);
+  assert.equal(pair.results[0]!.nationalRank, sfo.nationalRank);
+  assert.equal(pair.results[0]!.score, sfo.score);
+});
+
 test('unknown airport codes produce a helpful not-found error', () => {
   assert.throws(
     () => scoring.compare({ codes: ['LAX', 'ZZZ'], index: 'congestion' }),

@@ -3,7 +3,7 @@ import {
   type IndexDefinition,
   type IndexName,
 } from '../config/scoring.config.js';
-import type { KpiName } from '../domain/kpis.js';
+import type { AirportKpis, KpiName } from '../domain/kpis.js';
 import { rankAirports, type ScoreResult } from '../domain/scoring.js';
 import type { AirportRepository } from '../repositories/airport.repository.js';
 import type { CompareAirportsInput, RankAirportsInput } from '../schemas/airport.schema.js';
@@ -28,24 +28,40 @@ export class ScoringService {
     // Explicitly requested airports are never filtered out.
     const keepNonHubs = input.includeNonHubs || !!input.codes?.length;
     const eligible = keepNonHubs ? candidates : candidates.filter((k) => k.hubSize !== 'nonhub');
-    const ranked = rankAirports(eligible, this.airports.allKpis(), index);
+    const ranked = this.rankSelection(eligible, index);
 
     return {
       index: this.describe(input.index, index),
       candidates: eligible.length,
       excludedNonHubs: candidates.length - eligible.length,
-      results: ranked.slice(0, input.limit).map((r) => this.present(r)),
+      results: ranked.slice(0, input.limit),
     };
   }
 
   compare(input: CompareAirportsInput) {
     const index = INDEX_DEFINITIONS[input.index];
     const targets = this.airports.resolve({ codes: input.codes });
-    const ranked = rankAirports(targets, this.airports.allKpis(), index);
     return {
       index: this.describe(input.index, index),
-      results: ranked.map((r) => this.present(r)),
+      candidates: targets.length,
+      results: this.rankSelection(targets, index),
     };
+  }
+
+  /** Keep the selected ranking separate from the national ranking, even for a one-airport query. */
+  private rankSelection(targets: readonly AirportKpis[], index: IndexDefinition) {
+    const universe = this.airports.allKpis();
+    const national = rankAirports(universe, universe, index);
+    const codes = new Set(targets.map((t) => t.code));
+    const selected = national.filter((r) => codes.has(r.code));
+
+    return selected.map((result, i) => ({
+      ...this.present(result),
+      selectionRank: i + 1,
+      selectionSize: targets.length,
+      nationalRank: result.selectionRank!,
+      nationalSize: universe.length,
+    }));
   }
 
   /** Merges weight overrides into the index defaults and re-normalizes them to sum to 1. */
@@ -83,6 +99,12 @@ export class ScoringService {
         Object.entries(index.weights).map(([k, w]) => [k, `${round((w ?? 0) * 100)}%`]),
       ),
       customWeights: index !== INDEX_DEFINITIONS[name],
+      notes: [
+        'selectionRank is within the selected candidates; nationalRank includes all tracked airports, including non-hubs. Neither is the KPI normalization cohort.',
+        'A composite score is a weighted average of KPI percentiles, not itself a percentile or a probability.',
+        'Confidence describes data completeness and peer-group size, not certainty of investment returns.',
+        'Demand and NAS delays do not establish that terminal capacity is the bottleneck or that expansion will add flights.',
+      ],
     };
   }
 

@@ -2,7 +2,7 @@ import type { Confidence, ToolStep } from '../types';
 
 /** The fields of tool results the UI reads. Each tool returns a different subset. */
 interface ToolResult {
-  results?: { rank?: number; code: string; score: number; confidence?: Confidence }[];
+  results?: { selectionRank?: number; code: string; score: number; confidence?: Confidence }[];
   mix?: {
     passenger: { longHaulSharePct: number | null };
     cargo: { longHaulSharePct: number | null };
@@ -28,7 +28,10 @@ export function summarizeResult(raw: unknown): string {
   const r = raw as ToolResult;
   if (r.results) {
     return r.results
-      .map((x) => `${x.rank ? `${x.rank}. ` : ''}${x.code} ${x.score} (${x.confidence ?? 'n/a'})`)
+      .map(
+        (x) =>
+          `${x.selectionRank ? `${x.selectionRank}. ` : ''}${x.code} ${x.score} (${x.confidence ?? 'n/a'})`,
+      )
       .join(' · ');
   }
   if (r.mix) {

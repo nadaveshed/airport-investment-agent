@@ -1,4 +1,4 @@
-import { XMLParser } from 'fast-xml-parser';
+import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import { UpstreamError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { TtlCache } from '../utils/ttlCache.js';
@@ -73,8 +73,16 @@ export class LiveStatusService {
 
 /** Walks the FAA XML and groups every element that names an airport (ARPT) under its delay type. */
 export function parseStatus(xml: string): StatusDocument {
-  const root =
-    new XMLParser({ ignoreAttributes: true }).parse(xml).AIRPORT_STATUS_INFORMATION ?? {};
+  if (XMLValidator.validate(xml) !== true) throw new Error('Invalid FAA status XML');
+  const root = new XMLParser({ ignoreAttributes: true }).parse(xml).AIRPORT_STATUS_INFORMATION;
+  if (
+    !root ||
+    typeof root !== 'object' ||
+    typeof root.Update_Time !== 'string' ||
+    !Number.isFinite(Date.parse(root.Update_Time))
+  ) {
+    throw new Error('FAA status response is missing its root or valid update time');
+  }
   const byAirport = new Map<string, LiveEvent[]>();
 
   const visit = (node: unknown, type: string) => {

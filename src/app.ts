@@ -15,7 +15,7 @@ export function createApp(container: Container) {
   app.use(requestLogger);
   app.use('/api', apiRouter(container));
   app.use('/api', notFound);
-  app.use(express.static(path.resolve('dist/web'))); // built React UI (npm run build)
+  app.use(express.static(path.resolve('dist/frontend'))); // built React UI (npm run build)
   app.use(errorHandler);
 
   return app;

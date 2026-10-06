@@ -68,6 +68,7 @@ export function useChat(onAnswer: (markdown: string) => void) {
         await readSse(res, (event) => {
           if (event.type === 'session') setSession(event.sessionId);
           if (event.type === 'text') answer += event.delta;
+          if (event.type === 'text_reset') answer = answer.slice(0, -event.removeChars);
           update((m) => apply(m, event));
         });
         if (answer) onAnswer(answer);
@@ -125,6 +126,8 @@ function apply(m: AssistantMessage, event: ServerEvent): AssistantMessage {
     }
     case 'text':
       return { ...m, text: m.text + event.delta };
+    case 'text_reset':
+      return { ...m, text: m.text.slice(0, -event.removeChars) };
     case 'done':
       return { ...m, done: true, status: '' };
     case 'error':

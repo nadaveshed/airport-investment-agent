@@ -1,6 +1,6 @@
 /**
  * Runs the brief's example questions (each with a follow-up) against the real LLM and checks
- * that the agent picked the right tools and arguments. Writes docs/eval-results.md.
+ * tool selection and key answer values/caveats. Writes docs/eval-results.md.
  *
  *   npm run eval              # providers in .env order
  *   npm run eval -- deepseek  # one provider only, no fallback
@@ -11,6 +11,8 @@ import { loadEnv } from '../src/config/env.js';
 import { buildContainer } from '../src/container.js';
 import type { AgentEvent } from '../src/types/chat.js';
 import { setLogLevel } from '../src/utils/logger.js';
+import { rankAirportsSchema, routeMixSchema } from '../src/schemas/airport.schema.js';
+import { checkAnswer, NATIONAL_FIRST_CLAIMS, type AnswerChecks } from './evalChecks.js';
 
 interface ToolUse {
   name: string;
@@ -21,12 +23,14 @@ interface Turn {
   question: string;
   /** Returns null when the agent's tool usage is acceptable, or a reason when it is not. */
   check: (tools: ToolUse[]) => string | null;
+  answerChecks?: (container: ReturnType<typeof buildContainer>) => AnswerChecks;
 }
 
 const used = (tools: ToolUse[], name: string) => tools.filter((t) => t.name === name);
 const codesOf = (t: ToolUse) =>
   ((t.args.codes as string[] | undefined) ?? []).map((c) => c.toUpperCase());
 const expect = (ok: boolean, reason: string) => (ok ? null : reason);
+const expansionCaveat = /bottleneck|binding constraint|due diligence|investigat|assess/i;
 
 const SCENARIOS: { name: string; turns: Turn[] }[] = [
   {
@@ -34,6 +38,13 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
     turns: [
       {
         question: 'Which airports in New England are strong candidates for terminal expansion?',
+        answerChecks: (c) => ({
+          numbers: c.scoring
+            .rank(rankAirportsSchema.parse({ region: 'new england' }))
+            .results.slice(0, 3)
+            .map((r) => r.score),
+          terms: [/demand|screening/i, /terminal/i, expansionCaveat],
+        }),
         check: (t) =>
           expect(
             used(t, 'rank_airports').some((u) => u.args.region === 'new england'),
@@ -42,6 +53,12 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
       },
       {
         question: 'Why is the second one ranked lower than the first?',
+        answerChecks: (c) => ({
+          terms: c.scoring
+            .rank(rankAirportsSchema.parse({ region: 'new england' }))
+            .results.slice(0, 2)
+            .map((r) => new RegExp(`\\b${r.code}\\b`)),
+        }),
         check: (t) =>
           expect(
             t.length === 0 ||
@@ -58,6 +75,12 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
     turns: [
       {
         question: 'Compare LA and Santa Ana airport congestion levels.',
+        answerChecks: (c) => ({
+          numbers: c.scoring
+            .compare({ codes: ['LAX', 'SNA'], index: 'congestion' })
+            .results.map((r) => r.score),
+          terms: [/LAX/i, /SNA/i, /confidence/i],
+        }),
         check: (t) =>
           expect(
             [...used(t, 'compare_airports'), ...used(t, 'rank_airports')].some((u) => {
@@ -70,6 +93,7 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
       {
         question:
           'Which of the two has the larger share of delays caused by the air traffic system?',
+        answerChecks: () => ({ terms: [/LAX/i, /prorat|equivalent|attribut/i, /arrivals/i] }),
         check: () => null, // answerable from the previous turn; any tool use is acceptable
       },
     ],
@@ -79,6 +103,12 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
     turns: [
       {
         question: 'What is the percentage of long haul flights out of Anchorage airport?',
+        answerChecks: (c) => ({
+          numbers: [
+            c.routeMix.get(routeMixSchema.parse({ code: 'ANC' })).mix.passenger.longHaulSharePct!,
+          ],
+          terms: [/passenger/i, /cargo/i, /3000|3\s*000/i, /2025/],
+        }),
         check: (t) =>
           expect(
             used(t, 'get_route_mix').some((u) => String(u.args.code).toUpperCase() === 'ANC'),
@@ -87,6 +117,14 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
       },
       {
         question: 'And if long haul means 4,000 miles or more?',
+        answerChecks: (c) => ({
+          numbers: [
+            4000,
+            c.routeMix.get(routeMixSchema.parse({ code: 'ANC', longHaulMiles: 4000 })).mix.passenger
+              .longHaulSharePct!,
+          ],
+          terms: [/passenger/i, /cargo/i],
+        }),
         check: (t) =>
           expect(
             used(t, 'get_route_mix').some((u) => u.args.longHaulMiles === 4000),
@@ -100,6 +138,16 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
     turns: [
       {
         question: 'What is the unmet flight demand in SFO airport and why?',
+        answerChecks: (c) => {
+          const sfo = c.scoring.rank(
+            rankAirportsSchema.parse({ codes: ['SFO'], index: 'unmetDemand' }),
+          ).results[0]!;
+          return {
+            numbers: [sfo.score, sfo.nationalRank, sfo.nationalSize],
+            terms: [/proxy/i, /confidence/i, /terminal/i, expansionCaveat],
+            forbiddenClaims: NATIONAL_FIRST_CLAIMS,
+          };
+        },
         check: (t) =>
           expect(
             [...used(t, 'rank_airports'), ...used(t, 'compare_airports')].some(
@@ -110,6 +158,12 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
       },
       {
         question: 'How does that compare with LAX?',
+        answerChecks: (c) => ({
+          numbers: c.scoring
+            .compare({ codes: ['SFO', 'LAX'], index: 'unmetDemand' })
+            .results.map((r) => r.score),
+          terms: [/SFO/i, /LAX/i, /proxy|unmet/i],
+        }),
         check: (t) =>
           expect(
             [...used(t, 'rank_airports'), ...used(t, 'compare_airports')].some((u) => {
@@ -126,6 +180,13 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
     turns: [
       {
         question: 'How many flights are there from Tel Aviv (TLV) to JFK, and how many passengers?',
+        answerChecks: (c) => {
+          const route = c.routeMix.route({ from: 'TLV', to: 'JFK' }).directions[1]!;
+          return {
+            numbers: 'passengers' in route ? [route.passengers, route.passengerDepartures] : [],
+            terms: [/proxy|reverse|US.departure/i],
+          };
+        },
         check: (t) =>
           expect(
             used(t, 'get_route').some(
@@ -140,6 +201,7 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
       },
       {
         question: 'How does that compare with Newark?',
+        answerChecks: () => ({ terms: [/EWR|Newark/i] }),
         check: (t) =>
           expect(
             t.length === 0 || t.some((u) => ['get_route', 'get_airport_profile'].includes(u.name)),
@@ -176,6 +238,7 @@ async function main() {
         if (e.type === 'tool_call')
           tools.push({ name: e.name, args: (e.args ?? {}) as Record<string, unknown> });
         if (e.type === 'text') answer += e.delta;
+        if (e.type === 'text_reset') answer = answer.slice(0, -e.removeChars);
         if (e.type === 'provider') model = `${e.provider} / ${e.model}`;
       };
       let failure: string | null;
@@ -186,9 +249,9 @@ async function main() {
           await container.chat.send(
             container.chat.openSession(session.id),
             { message: turn.question },
-            { onEvent },
+            { onEvent, signal: AbortSignal.timeout(90_000) },
           );
-          failure = turn.check(tools);
+          failure = turn.check(tools) ?? checkAnswer(answer, turn.answerChecks?.(container));
         } catch (err) {
           failure = `error: ${String(err)}`;
           // Free tiers allow only a few requests per minute; wait for the window to reset.
@@ -221,7 +284,7 @@ async function main() {
     '',
     `Generated by \`npm run eval\` on ${new Date().toISOString().slice(0, 10)} with **${model}**.`,
     'Each scenario is one conversation: the follow-up question checks that context carries over.',
-    'Checks verify tool selection and arguments; scores themselves are covered by unit tests.',
+    'Checks verify tools, key answer values and caveats, including the SFO national-ranking regression. They do not prove every sentence correct; review the transcripts too.',
     '',
     `**Result: ${passed}/${total} checks passed.**`,
     '',
@@ -231,6 +294,7 @@ async function main() {
   const markdown = [...header, ...lines].join('\n');
   await writeFile(file, await format(markdown, { ...(await resolveConfig(file)), filepath: file }));
   console.log(`\n${passed}/${total} passed → ${file}`);
+  if (passed !== total) process.exitCode = 1;
 }
 
 main().catch((err) => {

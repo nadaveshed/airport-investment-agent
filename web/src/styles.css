@@ -47,11 +47,14 @@
 
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#root {
   min-height: 100dvh;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  background: var(--bg);
-  color: var(--text);
 }
 
 button {

@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
@@ -6,22 +7,8 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['web/**/*.js'],
-    languageOptions: {
-      globals: {
-        window: 'readonly',
-        document: 'readonly',
-        localStorage: 'readonly',
-        fetch: 'readonly',
-        TextDecoder: 'readonly',
-        marked: 'readonly',
-        DOMPurify: 'readonly',
-        console: 'readonly',
-        requestAnimationFrame: 'readonly',
-        HTMLButtonElement: 'readonly',
-        SpeechSynthesisUtterance: 'readonly',
-      },
-    },
+    files: ['web/**/*.{ts,tsx}'],
+    ...reactHooks.configs.flat.recommended,
   },
   {
     rules: {

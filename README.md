@@ -13,8 +13,10 @@ Requires Node 22+.
 ```bash
 npm install
 cp .env.example .env      # add GOOGLE_API_KEY and/or DEEPSEEK_API_KEY
-npm run dev               # http://localhost:3000
+npm run dev               # http://localhost:5173 (API on :3000)
 ```
+
+For a production build, run `npm run build && npm start` and open http://localhost:3000. The UI is React + TypeScript in `web/`, built with Vite.
 
 The data snapshot is committed. `npm run ingest` rebuilds it from the public sources.
 

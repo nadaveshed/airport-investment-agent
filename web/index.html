@@ -8,71 +8,9 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>"
     />
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/marked@18.0.14/lib/marked.umd.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.16/dist/purify.min.js" defer></script>
-    <script src="chat.js" defer></script>
   </head>
   <body>
-    <header class="topbar">
-      <div>
-        <h1>Airport Investment Agent</h1>
-        <p class="subtitle" id="dataset">Loading dataset…</p>
-      </div>
-      <div class="topbar-actions">
-        <label class="toggle" title="Read answers aloud">
-          <input type="checkbox" id="speak-toggle" />
-          <span>Speak answers</span>
-        </label>
-        <button type="button" id="new-chat" class="secondary">New conversation</button>
-      </div>
-    </header>
-
-    <main id="log" class="log" aria-live="polite">
-      <section class="welcome" id="welcome">
-        <h2>Find US airports where expansion is backed by demand</h2>
-        <p>
-          Ask about rankings, comparisons, congestion, route mix or unmet demand. Scores are
-          computed deterministically from BTS, DOT and FAA public data; the AI chooses the analysis
-          and explains it. Scores measure demand-driven opportunity, <strong>not</strong>
-          profitability.
-        </p>
-        <div class="suggestions" id="suggestions">
-          <button type="button">
-            Which airports in New England are strong candidates for terminal expansion?
-          </button>
-          <button type="button">Compare LA and Santa Ana airport congestion levels.</button>
-          <button type="button">
-            What is the percentage of long haul flights out of Anchorage airport?
-          </button>
-          <button type="button">What is the unmet flight demand in SFO airport and why?</button>
-        </div>
-      </section>
-    </main>
-
-    <form id="composer" class="composer">
-      <button
-        type="button"
-        id="mic"
-        class="icon-button"
-        title="Speak your question"
-        aria-label="Speak your question"
-        hidden
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"
-          />
-        </svg>
-      </button>
-      <textarea
-        id="input"
-        rows="1"
-        maxlength="2000"
-        placeholder="Ask about US airports…"
-        required
-      ></textarea>
-      <button type="submit" id="send">Send</button>
-    </form>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

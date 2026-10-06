@@ -7,7 +7,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['web/**/*.{ts,tsx}'],
+    files: ['frontend/**/*.{ts,tsx}'],
     ...reactHooks.configs.flat.recommended,
   },
   {

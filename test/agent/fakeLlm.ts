@@ -2,7 +2,7 @@ import type OpenAI from 'openai';
 import type { LlmProvider, ProviderName } from '../../src/agent/llm.js';
 
 type Chunk = OpenAI.Chat.Completions.ChatCompletionChunk;
-type Step = Chunk[] | Error;
+type Step = (Chunk | Error)[] | Error;
 
 export const text = (content: string): Chunk =>
   ({ choices: [{ index: 0, delta: { content } }] }) as unknown as Chunk;
@@ -37,7 +37,10 @@ export function fakeProvider(name: ProviderName, script: Step[]) {
           if (!next) throw new Error(`Fake ${name} has no scripted step ${step}`);
           if (next instanceof Error) throw next;
           return (async function* () {
-            yield* next;
+            for (const chunk of next) {
+              if (chunk instanceof Error) throw chunk;
+              yield chunk;
+            }
           })();
         },
       },

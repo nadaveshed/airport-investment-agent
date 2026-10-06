@@ -17,7 +17,7 @@ export interface DelayStats {
   /** Scheduled arrivals, including those later cancelled or diverted (BTS `arr_flights`). */
   arrivals: number;
   delayed15: number;
-  /** Arrivals delayed primarily by the National Aviation System: volume, ATC, airport operations. */
+  /** NAS-attributed equivalent delayed flights (BTS nas_ct); fractional when multiple causes share a flight. */
   nasDelayed: number;
   nasDelayMinutes: number;
   cancelled: number;

@@ -126,6 +126,36 @@ test('forces a final answer after the tool-round limit', async () => {
   );
 });
 
+test('a mid-stream fallback removes failed text and preserves earlier tool-round text', async () => {
+  const primary = fakeProvider('gemini', [
+    [text('Looking up the ranking.'), toolCall('c1', 'rank_airports', { region: 'new england' })],
+    [text('Incorrect partial answer.'), new OpenAI.APIConnectionError({ message: 'disconnected' })],
+  ]);
+  const fallback = fakeProvider('deepseek', [[text('BOS ranks first in this selection.')]]);
+  let visible = '';
+  const events: AgentEvent[] = [];
+  const added = await new Agent([primary.provider, fallback.provider], echoTool, 'system').run(
+    [{ role: 'user', content: 'Rank New England' }],
+    {
+      onEvent: (event) => {
+        events.push(event);
+        if (event.type === 'text') visible += event.delta;
+        if (event.type === 'text_reset') visible = visible.slice(0, -event.removeChars);
+      },
+    },
+  );
+  assert.equal(visible, 'Looking up the ranking.\n\nBOS ranks first in this selection.');
+  assert.equal(added.at(-1)!.content, 'BOS ranks first in this selection.');
+  assert.deepEqual(
+    events.find((e) => e.type === 'text_reset'),
+    {
+      type: 'text_reset',
+      removeChars: 'Incorrect partial answer.'.length,
+    },
+  );
+  assert.ok(added.every((m) => !String(m.content).includes('Incorrect partial')));
+});
+
 test('a failed turn does not store a partial conversation', async () => {
   const { provider } = fakeProvider('gemini', [new Error('boom')]);
   const chat = new ChatService(

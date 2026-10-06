@@ -1,6 +1,6 @@
 # Airport Investment Intelligence Agent
 
-A chat agent that ranks and compares US airports by how well demand supports terminal expansion. It uses public BTS, DOT and FAA data, scores airports deterministically, and explains its reasoning. Voice input and spoken answers are supported.
+A chat agent that ranks and compares US airports using demand and congestion signals for expansion research. It uses public BTS, DOT and FAA data, scores airports deterministically, and explains its reasoning. Scores are screening indicators, not profit estimates or proof that terminal expansion will increase capacity. Voice input and spoken answers are supported.
 
 ![Chat UI answering the New England expansion question](docs/screenshot.png)
 
@@ -16,7 +16,7 @@ cp .env.example .env      # add GOOGLE_API_KEY and/or DEEPSEEK_API_KEY
 npm run dev               # http://localhost:5173 (API on :3000)
 ```
 
-For a production build, run `npm run build && npm start` and open http://localhost:3000. The UI is React + TypeScript in `web/`, built with Vite.
+For a production build, run `npm run build && npm start` and open http://localhost:3000. The UI is React + TypeScript in `frontend/`, built with Vite.
 
 The data snapshot is committed. `npm run ingest` rebuilds it from the public sources.
 
@@ -24,4 +24,4 @@ The data snapshot is committed. `npm run ingest` rebuilds it from the public sou
 
 - `npm test`: unit, agent and API tests
 - `npm run check`: typecheck, lint, format
-- `npm run eval`: ask the brief's questions to the real LLM and check the tools it picks
+- `npm run eval`: ask the brief's questions and follow-ups to the real LLM; check tools, key values and caveats, and save transcripts for review (nonzero exit on failure)

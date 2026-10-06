@@ -69,7 +69,7 @@ export const KPI_DEFINITIONS: Record<KpiName, KpiDefinition> = {
   nasDelayRate: {
     label: 'NAS delay rate',
     description:
-      'Share of arrivals delayed mainly by the National Aviation System (traffic volume, ATC, airport operations, non-extreme weather). The closest public proxy for airport/airspace capacity saturation',
+      'NAS-attributed equivalent delayed flights divided by all scheduled arrivals. BTS prorates a delayed flight across causes by their delay minutes, so this is not the share of flights delayed mainly by NAS. Includes traffic volume, ATC, airport operations and non-extreme weather; does not isolate terminal congestion',
     unit: 'ratio',
     sourceId: 'delays',
   },

@@ -43,3 +43,34 @@ test('serves stale data when a refresh fails, and errors only when nothing is ca
   });
   await assert.rejects(cold.get('BOS'), UpstreamError);
 });
+
+test('rejects HTML, malformed XML and missing update times instead of reporting no delays', async () => {
+  for (const response of [
+    '<html><body>Service unavailable</body></html>',
+    '<AIRPORT_STATUS_INFORMATION><Update_Time>broken</AIRPORT_STATUS_INFORMATION>',
+    '<AIRPORT_STATUS_INFORMATION/>',
+    '<AIRPORT_STATUS_INFORMATION><Update_Time>unknown</Update_Time></AIRPORT_STATUS_INFORMATION>',
+  ]) {
+    await assert.rejects(new LiveStatusService(async () => response).get('SFO'), UpstreamError);
+  }
+});
+
+test('an invalid refresh keeps the previous FAA events and flags them as stale', async () => {
+  let response = XML;
+  const service = new LiveStatusService(async () => response, 0);
+  await service.get('BOS');
+  response = '<html>Service unavailable</html>';
+  const status = await service.get('BOS');
+  assert.equal(status.stale, true);
+  assert.equal(status.events[0]!.details.Reason, 'wind');
+});
+
+test('a valid document without delay programs reports no active events', async () => {
+  const status = await new LiveStatusService(
+    async () =>
+      '<AIRPORT_STATUS_INFORMATION><Update_Time>Mon Oct 5 12:15:54 2026 GMT</Update_Time></AIRPORT_STATUS_INFORMATION>',
+  ).get('SFO');
+  assert.equal(status.stale, false);
+  assert.deepEqual(status.events, []);
+  assert.equal(status.summary, 'No active FAA delay programs or closures');
+});

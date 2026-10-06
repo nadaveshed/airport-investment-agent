@@ -24,7 +24,8 @@ export interface ScoreResult {
   state: string;
   hubSize: AirportKpis['hubSize'];
   score: number;
-  rank?: number;
+  /** Position among the selected candidates, not among the normalization peers. */
+  selectionRank?: number;
   cohort: string;
   cohortSize: number;
   components: ScoreComponent[];
@@ -119,5 +120,5 @@ export function rankAirports(
   return targets
     .map((t) => scoreAirport(t, universe, index))
     .sort((a, b) => b.score - a.score || a.code.localeCompare(b.code))
-    .map((r, i) => ({ ...r, rank: i + 1 }));
+    .map((r, i) => ({ ...r, selectionRank: i + 1 }));
 }

@@ -53,7 +53,7 @@ export function createTools(services: ToolServices): Tool[] {
     defineTool({
       name: 'rank_airports',
       description:
-        'Deterministically rank airports on a composite index (expansionOpportunity, congestion or unmetDemand). Returns each score with its per-KPI percentiles, weights, contributions, confidence and caveats. Use it for "best candidates" or "top N" questions.',
+        'Deterministically rank airports on a composite index (expansionOpportunity, congestion or unmetDemand). selectionRank is among selected candidates; nationalRank is among all tracked airports, including non-hubs. Returns scores, per-KPI percentiles, weights, contributions, confidence and caveats. Use it for "best candidates" or "top N" questions.',
       schema: rankAirportsSchema,
       handler: (input) => services.scoring.rank(input),
     }),

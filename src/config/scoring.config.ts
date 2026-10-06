@@ -35,7 +35,7 @@ export const INDEX_DEFINITIONS: Record<IndexName, IndexDefinition> = {
   congestion: {
     label: 'Congestion Index',
     description:
-      'How saturated the airport and its airspace are today, compared with all tracked US airports.',
+      'Historical congestion signals from the snapshot, compared with all tracked US airports. Does not isolate terminal capacity.',
     cohort: 'all',
     weights: {
       nasDelayRate: 0.4,
@@ -47,7 +47,7 @@ export const INDEX_DEFINITIONS: Record<IndexName, IndexDefinition> = {
   unmetDemand: {
     label: 'Unmet Demand Proxy',
     description:
-      'Signals that more people want to fly than the airport can serve: full planes, premium fares and capacity-driven delays. A proxy, because unmet demand cannot be observed directly.',
+      'Potential demand pressure: full planes, premium fares and NAS-attributed delays. A proxy, not a count of unserved passengers or proof of a terminal capacity bottleneck.',
     cohort: 'all',
     weights: {
       loadFactor: 0.4,

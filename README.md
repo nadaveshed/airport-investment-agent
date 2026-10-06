@@ -4,6 +4,8 @@ A conversational AI agent that helps analysts find **US airports where terminal 
 
 > Ask: _"Which airports in New England are strong candidates for terminal expansion?"_, then _"Why is the second one lower?"_
 
+![Chat UI answering the New England expansion question](docs/screenshot.png)
+
 - **Deterministic scoring.** Composite indices are weighted KPI percentiles computed in a pure, tested domain layer. The LLM never produces numbers.
 - **Explainable.** Every score comes with per-KPI percentiles, weights, contributions, confidence and caveats. The UI shows the tool calls behind each answer.
 - **Conversational.** Full history, including earlier tool results, is kept per session, so follow-up questions work.
@@ -18,7 +20,7 @@ Requires Node 22+.
 
 ```bash
 npm install
-cp .env.example .env      # add GOOGLE_API_KEY and/or DEEPSEEK_API_KEY
+cp .env.example .env      # add GOOGLE_API_KEY (or GEMINI_API_KEY) and/or DEEPSEEK_API_KEY
 npm run dev               # http://localhost:3000
 ```
 
@@ -31,7 +33,7 @@ The data snapshot is committed, so no ingest is needed. Without an API key the R
 | `npm run dev` / `npm start` | Run the server (watch mode / built)                                                        |
 | `npm run ingest`            | Rebuild `data/snapshot.json` from public sources (~2 min; raw files cached in `data/raw/`) |
 | `npm test`                  | Unit, service, agent (scripted LLM) and API tests                                          |
-| `npm run eval`              | Run the brief's questions and follow-ups against the real LLM → `docs/eval-results.md`     |
+| `npm run eval [-- gemini]`  | Run the brief's questions and follow-ups against the real LLM → `docs/eval-results*.md`    |
 | `npm run check`             | Typecheck, lint, format check                                                              |
 
 ## API

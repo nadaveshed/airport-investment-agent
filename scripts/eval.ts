@@ -3,9 +3,10 @@
  * that the agent picked the right tools and arguments. Writes docs/eval-results.md.
  *
  *   npm run eval              # providers in .env order
- *   npm run eval -- deepseek  # force one provider
+ *   npm run eval -- deepseek  # one provider only, no fallback
  */
 import { writeFile } from 'node:fs/promises';
+import { format, resolveConfig } from 'prettier';
 import { loadEnv } from '../src/config/env.js';
 import { buildContainer } from '../src/container.js';
 import type { AgentEvent } from '../src/types/chat.js';
@@ -120,12 +121,42 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
       },
     ],
   },
+  {
+    name: 'International route with a foreign origin',
+    turns: [
+      {
+        question: 'How many flights are there from Tel Aviv (TLV) to JFK, and how many passengers?',
+        check: (t) =>
+          expect(
+            used(t, 'get_route').some(
+              (u) =>
+                [u.args.from, u.args.to]
+                  .map((c) => String(c).toUpperCase())
+                  .sort()
+                  .join() === 'JFK,TLV',
+            ),
+            'expected get_route for the JFK–TLV pair',
+          ),
+      },
+      {
+        question: 'How does that compare with Newark?',
+        check: (t) =>
+          expect(
+            t.length === 0 || t.some((u) => ['get_route', 'get_airport_profile'].includes(u.name)),
+            'expected reuse of the gateway list or a get_route/profile call',
+          ),
+      },
+    ],
+  },
 ];
 
 async function main() {
   setLogLevel('warn');
   const forced = process.argv[2] as 'gemini' | 'deepseek' | undefined;
+  // A forced run must measure that provider alone, so the other key is dropped (no fallback).
   const env = loadEnv(forced ? { ...process.env, LLM_PROVIDER: forced } : process.env);
+  if (forced === 'gemini') env.DEEPSEEK_API_KEY = undefined;
+  if (forced === 'deepseek') env.GOOGLE_API_KEY = undefined;
   const container = buildContainer(env);
   if (!container.agent.isConfigured) throw new Error('No LLM API key configured; see .env.example');
 
@@ -148,15 +179,26 @@ async function main() {
         if (e.type === 'provider') model = `${e.provider} / ${e.model}`;
       };
       let failure: string | null;
-      try {
-        await container.chat.send(
-          container.chat.openSession(session.id),
-          { message: turn.question },
-          { onEvent },
-        );
-        failure = turn.check(tools);
-      } catch (err) {
-        failure = `error: ${String(err)}`;
+      for (let attempt = 1; ; attempt++) {
+        tools.length = 0;
+        answer = '';
+        try {
+          await container.chat.send(
+            container.chat.openSession(session.id),
+            { message: turn.question },
+            { onEvent },
+          );
+          failure = turn.check(tools);
+        } catch (err) {
+          failure = `error: ${String(err)}`;
+          // Free tiers allow only a few requests per minute; wait for the window to reset.
+          if (/\((429|503)\)/.test(String(err)) && attempt < 4) {
+            console.log(`  rate limited, retrying in 60s (attempt ${attempt})`);
+            await new Promise((r) => setTimeout(r, 60_000));
+            continue;
+          }
+        }
+        break;
       }
       const seconds = ((performance.now() - start) / 1000).toFixed(1);
       total++;
@@ -185,7 +227,9 @@ async function main() {
     '',
   ];
   const file = `docs/eval-results${forced ? `-${forced}` : ''}.md`;
-  await writeFile(file, [...header, ...lines].join('\n'));
+  // Format like the rest of the repo so `npm run check` passes on the committed results.
+  const markdown = [...header, ...lines].join('\n');
+  await writeFile(file, await format(markdown, { ...(await resolveConfig(file)), filepath: file }));
   console.log(`\n${passed}/${total} passed → ${file}`);
 }
 

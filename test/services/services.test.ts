@@ -2,7 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { REGIONS } from '../../src/config/regions.js';
 import { JsonSnapshotRepository } from '../../src/repositories/jsonSnapshot.repository.js';
-import { rankAirportsSchema, routeMixSchema } from '../../src/schemas/airport.schema.js';
+import {
+  rankAirportsSchema,
+  routeMixSchema,
+  routeSchema,
+} from '../../src/schemas/airport.schema.js';
 import { AirportService } from '../../src/services/airport.service.js';
 import { RouteMixService } from '../../src/services/routeMix.service.js';
 import { ScoringService } from '../../src/services/scoring.service.js';
@@ -66,4 +70,20 @@ test('unknown airport codes produce a helpful not-found error', () => {
     () => scoring.compare({ codes: ['LAX', 'ZZZ'], index: 'congestion' }),
     NotFoundError,
   );
+});
+
+test('a route from a foreign airport is answered with the US-departure direction and a note', () => {
+  const result = routeMix.route(routeSchema.parse({ from: 'tlv', to: 'jfk' }));
+  const [inbound, outbound] = result.directions;
+  assert.ok(inbound && 'status' in inbound);
+  assert.match(inbound.status, /not a tracked US airport/);
+  assert.ok(outbound && 'passengers' in outbound);
+  assert.equal(outbound.origin, 'JFK');
+  assert.ok(Number(outbound.passengers.replaceAll(',', '')) > 100_000);
+  assert.ok(result.notes.some((n) => /proxy/.test(n)));
+  assert.ok(result.usGatewaysToForeignAirport!.some((g) => g.origin === 'EWR'));
+});
+
+test('a route needs at least one tracked US airport', () => {
+  assert.throws(() => routeMix.route({ from: 'TLV', to: 'LHR' }), NotFoundError);
 });

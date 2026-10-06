@@ -92,6 +92,25 @@ test('falls back to the next provider on rate limits', async () => {
   assert.deepEqual(events[0], { type: 'provider', provider: 'deepseek', model: 'deepseek-fake' });
 });
 
+test('falls back mid-turn and signs the other provider tool calls for Gemini', async () => {
+  const primary = fakeProvider('deepseek', [
+    [toolCall('c1', 'rank_airports', { region: 'new england' })],
+    rateLimited(),
+  ]);
+  const fallback = fakeProvider('gemini', [[text('BOS ranks first.')]]);
+  const added = await new Agent([primary.provider, fallback.provider], echoTool, 'system').run([
+    { role: 'user', content: 'x' },
+  ]);
+  assert.equal(added.at(-1)!.content, 'BOS ranks first.');
+  const sent = fallback.requests[0]!.messages.find((m) => m.role === 'assistant');
+  assert.deepEqual(
+    (sent as unknown as { tool_calls: { extra_content: unknown }[] }).tool_calls[0]!.extra_content,
+    {
+      google: { thought_signature: 'skip_thought_signature_validator' },
+    },
+  );
+});
+
 test('forces a final answer after the tool-round limit', async () => {
   const { provider, requests } = fakeProvider('gemini', [
     [toolCall('c1', 'rank_airports', { region: 'a' })],

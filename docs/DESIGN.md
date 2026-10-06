@@ -114,6 +114,7 @@ Other example results: in New England, BOS leads (69.4) on congestion and growth
 - **T-100 counts segments.** Multi-stop flights are counted per segment. Enplanements are measured as passengers on departing segments, which is close to, but not exactly, FAA CY enplanements.
 - **Delay data covers reporting carriers only.** Airports served only by smaller carriers have no delay KPIs and get lower confidence (for example HVN).
 - **Fares** cover domestic, contiguous-US markets only (no Alaska or Hawaii fares, no international fares).
+- **Route data covers departures from US airports only.** Flights into the US from abroad (e.g. TLV→JFK) are not in T-100 as ingested, so the agent answers with the US-departure direction as a proxy and says so.
 - **Long-haul** defaults to ≥3,000 statute miles (about 6+ hours). The threshold is a parameter and the agent states it.
 - **Hub classes** are computed from T-100 shares using the FAA thresholds, so they may differ slightly from FAA's published list.
 - **Unmet demand cannot be observed.** The index is a labelled proxy.
@@ -146,5 +147,5 @@ Other example results: in New England, BOS leads (69.4) on congestion and growth
 - **Service tests** run on the committed snapshot: each of the four brief questions must be answerable from tool output.
 - **Agent tests** use a scripted fake LLM: the tool loop, full history on follow-ups, invalid tool arguments, provider fallback, the round limit, and no partial sessions after failures.
 - **API tests** cover validation errors, 404s, and the SSE event sequence end to end.
-- **`npm run eval`** runs the brief's questions plus a follow-up each against the real LLM, checks tool choice and arguments, and writes `docs/eval-results.md`.
+- **`npm run eval`** runs the brief's questions plus a follow-up each against the real LLM, checks tool choice and arguments, and writes `docs/eval-results-<provider>.md` (DeepSeek: 10/10).
 - **CI** runs typecheck, lint, format check, tests and build on Node 22 and 24.

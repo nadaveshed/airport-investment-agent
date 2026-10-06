@@ -71,5 +71,5 @@ scripts/         ingest pipeline and LLM eval
 data/            snapshot.json, airportConstraints.json (curated, sourced)
 web/             chat UI
 test/            domain, services, agent, api
-docs/            DESIGN.md, PLAN.md, eval results
+docs/            DESIGN.md, eval results, screenshot
 ```

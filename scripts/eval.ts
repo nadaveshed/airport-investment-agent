@@ -30,7 +30,9 @@ const used = (tools: ToolUse[], name: string) => tools.filter((t) => t.name === 
 const codesOf = (t: ToolUse) =>
   ((t.args.codes as string[] | undefined) ?? []).map((c) => c.toUpperCase());
 const expect = (ok: boolean, reason: string) => (ok ? null : reason);
-const expansionCaveat = /bottleneck|binding constraint|due diligence|investigat|assess/i;
+const expansionCaveat = /bottleneck|binding|constrain|due diligence|investigat|assess/i;
+const liveChecked = (t: ToolUse[], code: string) =>
+  used(t, 'get_live_status').some((u) => String(u.args.code).toUpperCase() === code);
 
 const SCENARIOS: { name: string; turns: Turn[] }[] = [
   {
@@ -86,8 +88,10 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
             [...used(t, 'compare_airports'), ...used(t, 'rank_airports')].some((u) => {
               const codes = codesOf(u);
               return codes.includes('LAX') && codes.includes('SNA');
-            }),
-            'expected compare/rank including LAX and SNA',
+            }) &&
+              liveChecked(t, 'LAX') &&
+              liveChecked(t, 'SNA'),
+            'expected compare/rank including LAX and SNA, plus live FAA status for both',
           ),
       },
       {
@@ -152,8 +156,8 @@ const SCENARIOS: { name: string; turns: Turn[] }[] = [
           expect(
             [...used(t, 'rank_airports'), ...used(t, 'compare_airports')].some(
               (u) => u.args.index === 'unmetDemand' && codesOf(u).includes('SFO'),
-            ),
-            'expected unmetDemand scoring for SFO',
+            ) && liveChecked(t, 'SFO'),
+            'expected unmetDemand scoring and live FAA status for SFO',
           ),
       },
       {

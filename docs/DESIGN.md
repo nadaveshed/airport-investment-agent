@@ -4,7 +4,7 @@
 
 This one-day prototype does not collect project costs or airport finances, so it cannot estimate profit. Instead it screens demand signals: growth, full planes, congestion, size and pricing power. High scores suggest further investigation; they do not establish that terminal capacity is the bottleneck or that added capacity would fill.
 
-Data: BTS T-100 traffic, BTS delay causes, DOT fares and OurAirports, for 396 US airports. `npm run ingest` builds it into a committed snapshot. The FAA status API is called live for current delays.
+Data: BTS T-100 traffic, BTS delay causes, DOT fares and OurAirports, for 396 US airports. `npm run ingest` builds it into a committed snapshot. At answer time the agent calls the FAA's live airport status API, and congestion and unmet-demand answers include a line on current conditions there. That line is context and never changes a score.
 
 The agent's tools and the REST API use the same services, so every number the agent quotes can be checked with `GET /api/rankings` or `/api/compare`.
 

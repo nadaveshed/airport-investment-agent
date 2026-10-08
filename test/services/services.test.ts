@@ -56,6 +56,14 @@ test('ANC unmet demand states the weights after redistributing the missing fare 
   const anc = scoring.rank(rankAirportsSchema.parse({ codes: ['ANC'], index: 'unmetDemand' }))
     .results[0]!;
   assert.equal(anc.confidence, 'low'); // 30% of the weight is missing (over the 25% medium limit)
+  const load = anc.components.find((c) => c.kpi === 'loadFactor')!;
+  const nas = anc.components.find((c) => c.kpi === 'nasDelayRate')!;
+  const fare = anc.components.find((c) => c.kpi === 'fareIndex')!;
+  assert.equal(load.configuredWeightDisplay, '40%');
+  assert.equal(load.appliedWeightDisplay, '57.1%');
+  assert.equal(nas.configuredWeightDisplay, '30%');
+  assert.equal(nas.appliedWeightDisplay, '42.9%');
+  assert.equal(fare.appliedWeightDisplay, '0%');
   assert.ok(
     anc.caveats.includes('Weights after redistribution: Load factor 57.1%, NAS delay rate 42.9%.'),
     anc.caveats.join(' | '),

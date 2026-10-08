@@ -40,7 +40,7 @@ export function buildSystemPrompt(dataset: DatasetInfo): string {
 ${sources}
 
 ## Methodology (deterministic and computed by tools; you never compute scores)
-Every index is a weighted sum of KPI percentiles (0–100), not itself a percentile or probability. A score of 70 does not mean beating 70% of airports. Missing data redistributes weight and lowers confidence. Confidence measures data completeness and peer-group size, not confidence in profitability or causality.
+Every index is a weighted sum of KPI percentiles (0–100), not itself a percentile or probability. A score of 70 does not mean beating 70% of airports. Missing data redistributes weight and lowers confidence. Each component's configuredWeightDisplay is its configured weight and appliedWeightDisplay is the weight actually used for this airport. Copy these labeled values when explaining weights; never substitute weights from another index or swap components. Confidence measures data completeness and peer-group size, not confidence in profitability or causality.
 ${indices}
 
 KPIs:

@@ -111,7 +111,12 @@ export class ScoringService {
   private present(result: ScoreResult) {
     return {
       ...result,
-      components: result.components.map((c) => ({ ...c, display: formatKpi(c.kpi, c.value) })),
+      components: result.components.map((c) => ({
+        ...c,
+        display: formatKpi(c.kpi, c.value),
+        configuredWeightDisplay: `${round(c.weight * 100)}%`,
+        appliedWeightDisplay: `${round(c.appliedWeight * 100)}%`,
+      })),
       knownConstraints: this.repo.constraintsFor(result.code).map((c) => c.constraint),
     };
   }

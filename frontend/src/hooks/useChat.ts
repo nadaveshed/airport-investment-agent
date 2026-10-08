@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { restoreMessages, type StoredMessage } from '../lib/history';
+import { ConversationRequest } from '../lib/conversationRequest';
 import { readSse } from '../lib/sse';
 import { loadSessionId, saveSessionId } from '../lib/storage';
 import { errorOf, summarizeResult } from '../lib/toolResults';
@@ -13,9 +14,7 @@ export function useChat(onAnswer: (markdown: string) => void) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
   const sessionId = useRef(loadSessionId());
-  // Bumped by reset(), so a request still streaming from the previous conversation is ignored.
-  const generation = useRef(0);
-  const inFlight = useRef<AbortController | null>(null);
+  const requests = useRef(new ConversationRequest());
 
   const setSession = (id: string | null) => {
     sessionId.current = id;
@@ -25,18 +24,21 @@ export function useChat(onAnswer: (markdown: string) => void) {
   // Restore the conversation after a reload, including each answer's tool trace.
   useEffect(() => {
     const id = sessionId.current;
-    if (!id) return;
-    let cancelled = false;
-    fetch(`/api/chat/${id}`)
-      .then(async (res) => {
-        if (!res.ok) return setSession(null);
-        const session = (await res.json()) as { messages: StoredMessage[] };
-        if (!cancelled) setMessages(restoreMessages(session.messages, newId));
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
+    const currentRequests = requests.current;
+    if (id) {
+      const request = currentRequests.start();
+      fetch(`/api/chat/${id}`, { signal: request.signal })
+        .then(async (res) => {
+          if (!currentRequests.isCurrent(request)) return;
+          if (!res.ok) return setSession(null);
+          const session = (await res.json()) as { messages: StoredMessage[] };
+          if (currentRequests.isCurrent(request)) {
+            setMessages(restoreMessages(session.messages, newId));
+          }
+        })
+        .catch(() => {});
+    }
+    return () => currentRequests.cancel();
   }, []);
 
   const ask = useCallback(
@@ -44,10 +46,8 @@ export function useChat(onAnswer: (markdown: string) => void) {
       const message = raw.trim();
       if (busy || !message) return;
       setBusy(true);
-      const gen = generation.current;
-      const isCurrent = () => gen === generation.current;
-      const controller = new AbortController();
-      inFlight.current = controller;
+      const controller = requests.current.start();
+      const isCurrent = () => requests.current.isCurrent(controller);
 
       const id = newId();
       setMessages((prev) => [
@@ -89,7 +89,6 @@ export function useChat(onAnswer: (markdown: string) => void) {
         if (isCurrent()) {
           update((m) => ({ ...m, done: true, status: '' }));
           setBusy(false);
-          inFlight.current = null;
         }
       }
     },
@@ -97,9 +96,7 @@ export function useChat(onAnswer: (markdown: string) => void) {
   );
 
   const reset = useCallback(() => {
-    generation.current += 1;
-    inFlight.current?.abort(); // the server stops the agent when the client disconnects
-    inFlight.current = null;
+    requests.current.cancel(); // the server stops the agent when the client disconnects
     setBusy(false);
     setSession(null);
     setMessages([]);

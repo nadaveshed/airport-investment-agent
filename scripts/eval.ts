@@ -36,6 +36,42 @@ const liveChecked = (t: ToolUse[], code: string) =>
 
 const SCENARIOS: { name: string; turns: Turn[] }[] = [
   {
+    name: 'Anchorage missing-data weights',
+    turns: [
+      {
+        question:
+          "What is ANC's unmet-demand score and why? Include current FAA status and quote the exact 'Weights after redistribution' caveat.",
+        answerChecks: () => ({
+          numbers: [58.8],
+          terms: [/Load factor 57\.1%/i, /NAS delay rate 42\.9%/i, /low/i],
+        }),
+        check: (t) =>
+          expect(
+            used(t, 'rank_airports').some(
+              (u) => codesOf(u).includes('ANC') && u.args.index === 'unmetDemand',
+            ) && liveChecked(t, 'ANC'),
+            'expected ANC unmet-demand score and live FAA status',
+          ),
+      },
+      {
+        question:
+          'Show the configured and applied weights for each of those three KPIs in a table. Keep the same airport and index.',
+        answerChecks: () => ({
+          numbers: [40, 30, 57.1, 42.9],
+          forbiddenClaims: [/^\|\s*NAS[^\n]*57\.1%/im, /^\|\s*Load factor[^\n]*42\.9%/im],
+        }),
+        check: (t) =>
+          expect(
+            t.length === 0 ||
+              used(t, 'rank_airports').some(
+                (u) => codesOf(u).includes('ANC') && u.args.index === 'unmetDemand',
+              ),
+            'expected reuse of ANC unmet-demand weights or the same ranking',
+          ),
+      },
+    ],
+  },
+  {
     name: 'New England terminal expansion',
     turns: [
       {

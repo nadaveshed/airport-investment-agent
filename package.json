@@ -15,7 +15,7 @@
     "start": "node --env-file-if-exists=.env dist/src/server.js",
     "ingest": "tsx scripts/ingest.ts",
     "eval": "tsx --env-file-if-exists=.env scripts/eval.ts",
-    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "test": "node --import tsx --test \"test/**/*.test.ts\" \"frontend/src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit && tsc --noEmit -p frontend",
     "lint": "eslint .",
     "format": "prettier --write .",

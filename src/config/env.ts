@@ -10,7 +10,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-  LLM_PROVIDER: z.enum(['gemini', 'deepseek']).default('gemini'),
+  LLM_PROVIDER: z.enum(['gemini', 'deepseek']).default('deepseek'),
   GOOGLE_API_KEY: optionalKey,
   GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
   DEEPSEEK_API_KEY: optionalKey,

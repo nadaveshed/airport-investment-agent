@@ -40,6 +40,23 @@ test('Q2: LAX vs SNA congestion returns both airports and SNA regulatory context
   assert.ok(sna.components.every((c) => typeof c.display === 'string'));
 });
 
+test('LAX congestion: NAS delay, not load factor, is the largest contributor', () => {
+  // The model once called load factor the biggest driver; contributionOrder now states it.
+  const lax = scoring
+    .compare({ codes: ['LAX', 'SNA'], index: 'congestion' })
+    .results.find((r) => r.code === 'LAX')!;
+  assert.equal(lax.contributionOrder[0]!.kpi, 'nasDelayRate');
+  const nas = lax.contributionOrder[0]!.contribution;
+  const load = lax.contributionOrder.find((c) => c.kpi === 'loadFactor')!.contribution;
+  assert.ok(nas > load);
+});
+
+test('ANC passenger long-haul routes include more than DFW', () => {
+  const mix = routeMix.get(routeMixSchema.parse({ code: 'ANC' })).mix;
+  const passenger = mix.topPassengerLongHaulRoutes.map((r) => r.dest);
+  for (const dest of ['DFW', 'ATL', 'IAH', 'IAD']) assert.ok(passenger.includes(dest), dest);
+});
+
 test('Q3: Anchorage long-haul share separates passenger and cargo flights', () => {
   const result = routeMix.get(routeMixSchema.parse({ code: 'anc' }));
   assert.equal(result.mix.longHaulMiles, 3000);

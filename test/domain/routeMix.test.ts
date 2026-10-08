@@ -26,9 +26,33 @@ test('splits long-haul share by passenger, cargo and all departures', () => {
   assert.equal(mix.internationalPassengerSharePct, 10);
   assert.equal(mix.destinations, 3);
   assert.deepEqual(
-    mix.topLongHaulRoutes.map((r) => r.dest),
+    mix.topPassengerLongHaulRoutes.map((r) => r.dest),
+    ['ICN'],
+  );
+  assert.deepEqual(
+    mix.topCargoLongHaulRoutes.map((r) => r.dest),
     ['ICN', 'SDF'],
   );
+});
+
+test('passenger long-haul routes are not crowded out by busier cargo routes', () => {
+  // The Anchorage pattern: freighter routes dominate departures, so a combined top-N list hid
+  // the passenger routes and the agent concluded there was only one.
+  const cargoHub = [
+    ...['HKG', 'PVG', 'ICN', 'TPE', 'NRT', 'SDF', 'MEM', 'ORD', 'LAX', 'CVG', 'IND'].map((dest) =>
+      route({ dest, distanceMiles: 3500, cargoDepartures: 2000 }),
+    ),
+    route({ dest: 'DFW', distanceMiles: 3043, passengerDepartures: 377 }),
+    route({ dest: 'ATL', distanceMiles: 3417, passengerDepartures: 132 }),
+    route({ dest: 'IAD', distanceMiles: 3356, passengerDepartures: 108 }),
+  ];
+  const mix = computeRouteMix(cargoHub, 3000);
+  assert.deepEqual(
+    mix.topPassengerLongHaulRoutes.map((r) => r.dest),
+    ['DFW', 'ATL', 'IAD'],
+  );
+  assert.equal(mix.topCargoLongHaulRoutes.length, 10);
+  assert.ok(mix.topCargoLongHaulRoutes.every((r) => r.cargoDepartures > 0));
 });
 
 test('threshold is a parameter, not a hard-coded assumption', () => {

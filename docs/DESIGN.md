@@ -39,7 +39,7 @@ Each index is a weighted average of KPI percentiles on a 0–100 scale. The comp
 
 ## Where AI is used
 
-The LLM (Gemini, with DeepSeek as fallback) picks the tools and explains the results. Scores, ranks and component contributions are computed in code; the model is instructed to quote them. It maps questions to tool calls ("LA" → LAX), uses chat history for follow-ups ("the second one" → PWM), and explains what drove each score. It gets at most 6 tool rounds per answer, and the UI shows every tool call it made. Generated explanations can still be wrong and should be reviewed.
+The LLM (DeepSeek by default, Gemini as fallback) picks the tools and explains the results. Scores, ranks and component contributions are computed in code; the model is instructed to quote them. It maps questions to tool calls ("LA" → LAX), uses chat history for follow-ups ("the second one" → PWM), and explains what drove each score. It gets at most 6 tool rounds per answer, and the UI shows every tool call it made. Generated explanations can still be wrong and should be reviewed.
 
 If a provider fails mid-stream, a `text_reset` event removes only that failed completion's text before a fallback. Invalid FAA responses fail validation; the service returns explicitly stale cached data or an unavailable error, rather than claiming no delays.
 

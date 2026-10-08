@@ -67,7 +67,7 @@ export function createTools(services: ToolServices): Tool[] {
     defineTool({
       name: 'get_route_mix',
       description:
-        'Long-haul vs short-haul split of departing flights, for passenger, all-cargo and all flights, plus top long-haul routes and international share.',
+        'Long-haul vs short-haul split of departing flights, for passenger, all-cargo and all flights, plus international share and the busiest long-haul routes as two separate lists: by passenger departures and by cargo departures.',
       schema: routeMixSchema,
       handler: (input) => services.routeMix.get(input),
     }),

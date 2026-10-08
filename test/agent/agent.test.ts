@@ -92,6 +92,13 @@ test('falls back to the next provider on rate limits', async () => {
   assert.deepEqual(events[0], { type: 'provider', provider: 'deepseek', model: 'deepseek-fake' });
 });
 
+test("sends a provider's request options, such as Gemini's low reasoning effort", async () => {
+  const gemini = fakeProvider('gemini', [[text('ok')]]);
+  const provider = { ...gemini.provider, requestOptions: { reasoning_effort: 'low' as const } };
+  await new Agent([provider], echoTool, 'system').run([{ role: 'user', content: 'x' }]);
+  assert.equal((gemini.requests[0] as { reasoning_effort?: string }).reasoning_effort, 'low');
+});
+
 test('falls back mid-turn and signs the other provider tool calls for Gemini', async () => {
   const primary = fakeProvider('deepseek', [
     [toolCall('c1', 'rank_airports', { region: 'new england' })],

@@ -8,6 +8,15 @@ export interface DepartureShare {
   longHaulSharePct: number | null;
 }
 
+export interface LongHaulRoute {
+  dest: string;
+  destName: string;
+  destCountry: string;
+  distanceMiles: number;
+  passengerDepartures: number;
+  cargoDepartures: number;
+}
+
 export interface RouteMix {
   longHaulMiles: number;
   passenger: DepartureShare & { seats: number; longHaulSeatSharePct: number | null };
@@ -15,14 +24,10 @@ export interface RouteMix {
   all: DepartureShare;
   internationalPassengerSharePct: number | null;
   destinations: number;
-  topLongHaulRoutes: {
-    dest: string;
-    destName: string;
-    destCountry: string;
-    distanceMiles: number;
-    passengerDepartures: number;
-    cargoDepartures: number;
-  }[];
+  /** Busiest long-haul routes by passenger departures (routes with passenger service only). */
+  topPassengerLongHaulRoutes: LongHaulRoute[];
+  /** Busiest long-haul routes by all-cargo departures (routes with cargo service only). */
+  topCargoLongHaulRoutes: LongHaulRoute[];
 }
 
 const pct = (part: number, whole: number) => (whole > 0 ? round((part / whole) * 100) : null);
@@ -70,19 +75,27 @@ export function computeRouteMix(
       paxDeps,
     ),
     destinations: new Set(routes.map((r) => r.dest)).size,
-    topLongHaulRoutes: [...longRoutes]
-      .sort(
-        (a, b) =>
-          b.passengerDepartures + b.cargoDepartures - (a.passengerDepartures + a.cargoDepartures),
-      )
-      .slice(0, topN)
-      .map((r) => ({
-        dest: r.dest,
-        destName: r.destName,
-        destCountry: r.destCountry,
-        distanceMiles: r.distanceMiles,
-        passengerDepartures: Math.round(r.passengerDepartures),
-        cargoDepartures: Math.round(r.cargoDepartures),
-      })),
+    // Separate lists: at a cargo hub a combined list hides the passenger routes entirely.
+    topPassengerLongHaulRoutes: topBy(longRoutes, (r) => r.passengerDepartures, topN),
+    topCargoLongHaulRoutes: topBy(longRoutes, (r) => r.cargoDepartures, topN),
   };
+}
+
+function topBy(
+  routes: readonly RouteSegment[],
+  pick: (r: RouteSegment) => number,
+  topN: number,
+): LongHaulRoute[] {
+  return routes
+    .filter((r) => pick(r) > 0)
+    .sort((a, b) => pick(b) - pick(a) || a.dest.localeCompare(b.dest))
+    .slice(0, topN)
+    .map((r) => ({
+      dest: r.dest,
+      destName: r.destName,
+      destCountry: r.destCountry,
+      distanceMiles: r.distanceMiles,
+      passengerDepartures: Math.round(r.passengerDepartures),
+      cargoDepartures: Math.round(r.cargoDepartures),
+    }));
 }

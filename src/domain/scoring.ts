@@ -29,6 +29,8 @@ export interface ScoreResult {
   cohort: string;
   cohortSize: number;
   components: ScoreComponent[];
+  /** Components with data, largest contribution first, so explanations don't have to sort them. */
+  contributionOrder: { kpi: KpiName; label: string; contribution: number }[];
   confidence: Confidence;
   caveats: string[];
 }
@@ -106,6 +108,10 @@ export function scoreAirport(
     cohort: cohort.label,
     cohortSize: cohort.members.length,
     components,
+    contributionOrder: components
+      .filter((c) => c.value !== null)
+      .sort((a, b) => b.contribution - a.contribution)
+      .map(({ kpi, label, contribution }) => ({ kpi, label, contribution })),
     confidence,
     caveats,
   };

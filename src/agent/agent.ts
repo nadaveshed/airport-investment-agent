@@ -120,6 +120,7 @@ export class Agent {
             tools: this.tools.definitions,
             tool_choice: forceAnswer ? 'none' : 'auto',
             stream: true,
+            ...provider.requestOptions,
           },
           { signal },
         );

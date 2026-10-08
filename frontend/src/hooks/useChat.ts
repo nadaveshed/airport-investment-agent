@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { restoreMessages, type StoredMessage } from '../lib/history';
 import { readSse } from '../lib/sse';
 import { loadSessionId, saveSessionId } from '../lib/storage';
 import { errorOf, summarizeResult } from '../lib/toolResults';
@@ -6,8 +7,6 @@ import type { AssistantMessage, Message, ServerEvent } from '../types';
 
 let nextId = 0;
 const newId = () => String(++nextId);
-
-type StoredMessage = { role: string; content?: unknown };
 
 /** Owns the conversation: sends questions, applies streamed events, and restores the session after a reload. */
 export function useChat(onAnswer: (markdown: string) => void) {
@@ -20,7 +19,7 @@ export function useChat(onAnswer: (markdown: string) => void) {
     saveSessionId(id);
   };
 
-  // Restore the visible conversation (tool calls are not re-rendered).
+  // Restore the conversation after a reload, including each answer's tool trace.
   useEffect(() => {
     const id = sessionId.current;
     if (!id) return;
@@ -29,7 +28,7 @@ export function useChat(onAnswer: (markdown: string) => void) {
       .then(async (res) => {
         if (!res.ok) return setSession(null);
         const session = (await res.json()) as { messages: StoredMessage[] };
-        if (!cancelled) setMessages(session.messages.flatMap(restore));
+        if (!cancelled) setMessages(restoreMessages(session.messages, newId));
       })
       .catch(() => {});
     return () => {
@@ -135,13 +134,4 @@ function apply(m: AssistantMessage, event: ServerEvent): AssistantMessage {
     default:
       return m;
   }
-}
-
-function restore(m: StoredMessage): Message[] {
-  if (typeof m.content !== 'string' || !m.content) return [];
-  if (m.role === 'user') return [{ id: newId(), role: 'user', text: m.content }];
-  if (m.role === 'assistant') {
-    return [{ id: newId(), role: 'assistant', text: m.content, status: '', steps: [], done: true }];
-  }
-  return [];
 }

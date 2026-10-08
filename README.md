@@ -18,7 +18,7 @@ npm run dev               # http://localhost:5173 (API on :3000)
 
 For a production build, run `npm run build && npm start` and open http://localhost:3000. The UI is React + TypeScript in `frontend/`, built with Vite.
 
-Gemini is the default model, with DeepSeek as a fallback when both keys are set. The free Gemini tier allows only about 20 requests a day, so for longer testing use a paid key or set `LLM_PROVIDER=deepseek`.
+DeepSeek is the default model, with Gemini as a fallback when both keys are set (`LLM_PROVIDER=gemini` swaps them). DeepSeek answers in a few seconds; Gemini is slower, and its free tier allows only about 20 requests a day.
 
 The data snapshot is committed. `npm run ingest` rebuilds it from the public sources.
 

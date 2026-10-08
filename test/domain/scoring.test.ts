@@ -36,6 +36,23 @@ test('score is the weighted sum of cohort percentiles', () => {
   assert.ok(Math.abs(sum - result.score) < 0.1);
 });
 
+test('contributionOrder lists components with data from largest to smallest contribution', () => {
+  const lopsided: IndexDefinition = {
+    ...twoKpiIndex,
+    weights: { loadFactor: 0.2, passengerCagr: 0.8 },
+  };
+  const result = scoreAirport(universe.at(-1)!, universe, lopsided);
+  assert.deepEqual(
+    result.contributionOrder.map((c) => c.kpi),
+    ['passengerCagr', 'loadFactor'],
+  );
+  const contributions = result.contributionOrder.map((c) => c.contribution);
+  assert.deepEqual(
+    contributions,
+    [...contributions].sort((a, b) => b - a),
+  );
+});
+
 test('missing KPIs redistribute weight and lower confidence', () => {
   const target = { ...universe[19]!, passengerCagr: null };
   const result = scoreAirport(target, universe, twoKpiIndex);

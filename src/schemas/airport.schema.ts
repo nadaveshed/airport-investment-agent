@@ -19,14 +19,16 @@ export const hubSizeSchema = z.enum(['large', 'medium', 'small', 'nonhub']);
 export const indexNameSchema = z.enum(['expansionOpportunity', 'congestion', 'unmetDemand']);
 export const regionSchema = z.enum(REGION_NAMES as [string, ...string[]]);
 /** One optional weight per KPI. An explicit object (not a record) keeps the tool schema simple for LLMs. */
-const weightsSchema = z.object(
-  Object.fromEntries(
-    (Object.keys(KPI_DEFINITIONS) as KpiName[]).map((k) => [
-      k,
-      z.number().min(0).max(1).optional(),
-    ]),
-  ) as Record<KpiName, z.ZodOptional<z.ZodNumber>>,
-);
+const weightsSchema = z
+  .object(
+    Object.fromEntries(
+      (Object.keys(KPI_DEFINITIONS) as KpiName[]).map((k) => [
+        k,
+        z.number().min(0).max(1).optional(),
+      ]),
+    ) as Record<KpiName, z.ZodOptional<z.ZodNumber>>,
+  )
+  .strict();
 
 export const airportFilterSchema = z.object({
   region: regionSchema.optional().describe('US region (Census division or common grouping)'),
@@ -74,7 +76,11 @@ export const rankAirportsSchema = airportFilterSchema.extend({
 export type RankAirportsInput = z.infer<typeof rankAirportsSchema>;
 
 export const compareAirportsSchema = z.object({
-  codes: z.array(airportCodeSchema).min(2).max(8),
+  codes: z
+    .array(airportCodeSchema)
+    .min(2)
+    .max(8)
+    .refine((codes) => new Set(codes).size === codes.length, 'Airport codes must be distinct'),
   index: indexNameSchema.default('congestion'),
 });
 export type CompareAirportsInput = z.infer<typeof compareAirportsSchema>;
@@ -100,6 +106,9 @@ export const routeSchema = z.object({
 export type RouteInput = z.infer<typeof routeSchema>;
 
 /* REST adapters: query strings arrive as strings, so lists are comma-separated and numbers are coerced. */
+
+const WEIGHT_PAIR = String.raw`\s*[A-Za-z]+\s*:\s*(?:\d+(?:\.\d+)?|\.\d+)\s*`;
+const WEIGHT_PAIRS = new RegExp(`^${WEIGHT_PAIR}(?:,${WEIGHT_PAIR})*$`);
 
 /** Item validation happens in the piped service schema. */
 const csvList = z.string().transform((s) =>
@@ -130,6 +139,8 @@ export const rankAirportsQuery = z
     index: z.string().optional(),
     weights: z
       .string()
+      // Every pair needs a name and a number; "loadFactor" or "loadFactor:" used to become 0.
+      .regex(WEIGHT_PAIRS, 'Expected "kpi:weight" pairs, e.g. "passengerCagr:0.5,loadFactor:0.2"')
       .transform((s) =>
         Object.fromEntries(
           s.split(',').map((pair) => {

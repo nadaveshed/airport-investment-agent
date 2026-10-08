@@ -13,6 +13,9 @@ export function useChat(onAnswer: (markdown: string) => void) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
   const sessionId = useRef(loadSessionId());
+  // Bumped by reset(), so a request still streaming from the previous conversation is ignored.
+  const generation = useRef(0);
+  const inFlight = useRef<AbortController | null>(null);
 
   const setSession = (id: string | null) => {
     sessionId.current = id;
@@ -41,6 +44,10 @@ export function useChat(onAnswer: (markdown: string) => void) {
       const message = raw.trim();
       if (busy || !message) return;
       setBusy(true);
+      const gen = generation.current;
+      const isCurrent = () => gen === generation.current;
+      const controller = new AbortController();
+      inFlight.current = controller;
 
       const id = newId();
       setMessages((prev) => [
@@ -59,29 +66,41 @@ export function useChat(onAnswer: (markdown: string) => void) {
           body: JSON.stringify(
             sessionId.current ? { sessionId: sessionId.current, message } : { message },
           ),
+          signal: controller.signal,
         });
         if (!res.ok) {
           const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
           throw new Error(body.error?.message ?? `Request failed (${res.status})`);
         }
         await readSse(res, (event) => {
+          if (!isCurrent()) return;
           if (event.type === 'session') setSession(event.sessionId);
           if (event.type === 'text') answer += event.delta;
           if (event.type === 'text_reset') answer = answer.slice(0, -event.removeChars);
           update((m) => apply(m, event));
         });
-        if (answer) onAnswer(answer);
+        if (answer && isCurrent()) onAnswer(answer);
       } catch (err) {
-        update((m) => ({ ...m, error: err instanceof Error ? err.message : String(err) }));
+        if (isCurrent()) {
+          update((m) => ({ ...m, error: err instanceof Error ? err.message : String(err) }));
+        }
       } finally {
-        update((m) => ({ ...m, done: true, status: '' }));
-        setBusy(false);
+        // After a reset the new conversation owns `busy`; a stale request must not clear it.
+        if (isCurrent()) {
+          update((m) => ({ ...m, done: true, status: '' }));
+          setBusy(false);
+          inFlight.current = null;
+        }
       }
     },
     [busy, onAnswer],
   );
 
   const reset = useCallback(() => {
+    generation.current += 1;
+    inFlight.current?.abort(); // the server stops the agent when the client disconnects
+    inFlight.current = null;
+    setBusy(false);
     setSession(null);
     setMessages([]);
   }, []);

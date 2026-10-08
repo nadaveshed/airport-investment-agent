@@ -46,6 +46,23 @@ test('invalid input returns a uniform 400 error body', async () => {
   assert.equal(body.error.code, 'VALIDATION_ERROR');
 });
 
+test('malformed or unknown weights are rejected instead of silently ignored or zeroed', async () => {
+  for (const weights of ['bogusKpi:0.5', 'loadFactor', 'loadFactor:', 'loadFactor:abc', ':0.5']) {
+    const res = await fetch(`${base}/rankings?weights=${encodeURIComponent(weights)}`);
+    assert.equal(res.status, 400, weights);
+    assert.equal(((await res.json()) as ErrorBody).error.code, 'VALIDATION_ERROR');
+  }
+  const ok = await fetch(`${base}/rankings?weights=passengerCagr:0.5,%20loadFactor:.2`);
+  assert.equal(ok.status, 200);
+});
+
+test('comparing an airport with itself is rejected', async () => {
+  for (const codes of ['LAX,LAX', 'lax,LAX']) {
+    const res = await fetch(`${base}/compare?codes=${codes}`);
+    assert.equal(res.status, 400, codes);
+  }
+});
+
 test('unknown routes return 404 JSON', async () => {
   const res = await fetch(`${base}/does-not-exist`);
   assert.equal(res.status, 404);

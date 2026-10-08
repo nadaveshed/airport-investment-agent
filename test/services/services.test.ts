@@ -51,6 +51,22 @@ test('LAX congestion: NAS delay, not load factor, is the largest contributor', (
   assert.ok(nas > load);
 });
 
+test('ANC unmet demand states the weights after redistributing the missing fare weight', () => {
+  // The agent once swapped these (said NAS 57%, load factor 43%); the caveat now states them.
+  const anc = scoring.rank(rankAirportsSchema.parse({ codes: ['ANC'], index: 'unmetDemand' }))
+    .results[0]!;
+  assert.equal(anc.confidence, 'low'); // 30% of the weight is missing (over the 25% medium limit)
+  assert.ok(
+    anc.caveats.includes('Weights after redistribution: Load factor 57.1%, NAS delay rate 42.9%.'),
+    anc.caveats.join(' | '),
+  );
+});
+
+test('tool and REST weights reject unknown KPI names', () => {
+  assert.equal(rankAirportsSchema.safeParse({ weights: { bogusKpi: 0.5 } }).success, false);
+  assert.equal(rankAirportsSchema.safeParse({ weights: { loadFactor: 0.5 } }).success, true);
+});
+
 test('ANC passenger long-haul routes include more than DFW', () => {
   const mix = routeMix.get(routeMixSchema.parse({ code: 'ANC' })).mix;
   const passenger = mix.topPassengerLongHaulRoutes.map((r) => r.dest);

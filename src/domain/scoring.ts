@@ -91,6 +91,14 @@ export function scoreAirport(
     (c) =>
       `No ${c.label.toLowerCase()} data; its ${Math.round(c.weight * 100)}% weight was redistributed.`,
   );
+  if (missing.length > 0 && availableWeight > 0) {
+    // State the resulting weights so explanations quote them instead of re-deriving them.
+    const applied = components
+      .filter((c) => c.value !== null)
+      .map((c) => `${c.label} ${((c.weight / availableWeight) * 100).toFixed(1)}%`)
+      .join(', ');
+    caveats.push(`Weights after redistribution: ${applied}.`);
+  }
   if (cohort.members.length < MIN_COHORT_SIZE) {
     caveats.push(`Small peer group (${cohort.members.length} airports); percentiles are coarse.`);
   }

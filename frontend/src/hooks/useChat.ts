@@ -69,6 +69,13 @@ export function useChat(onAnswer: (markdown: string) => void) {
             sessionId.current ? { sessionId: sessionId.current, message } : { message },
           ),
           signal: controller.signal,
+        }).catch((err: unknown) => {
+          if (controller.signal.aborted) throw err;
+          throw new Error(
+            'Unable to connect to the chat server. Check your connection and try again. ' +
+              'If running locally, make sure the app server is running, then refresh.',
+            { cause: err },
+          );
         });
         if (!res.ok) {
           const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } };

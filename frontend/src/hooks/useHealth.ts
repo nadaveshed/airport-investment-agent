@@ -9,7 +9,10 @@ export function useHealth() {
 
   useEffect(() => {
     fetch('/api/health')
-      .then((res) => res.json() as Promise<Health>)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Health request failed (${res.status})`);
+        return res.json() as Promise<Health>;
+      })
       .then(setHealth)
       .catch(() => setHealth('error'));
   }, []);

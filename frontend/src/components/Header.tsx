@@ -33,7 +33,7 @@ export function Header({ health, speakAnswers, onSpeakChange, onNewChat }: Props
 
 function describe(health: Props['health']): string {
   if (health === null) return 'Loading dataset…';
-  if (health === 'error') return 'Dataset info unavailable';
+  if (health === 'error') return 'Unable to connect to the server. Refresh to reconnect.';
   const period = (id: string) => health.data.sources.find((s) => s.id === id)?.period;
   const text =
     `${health.data.airports} US airports · T-100 through ${health.data.latestYear} · ` +

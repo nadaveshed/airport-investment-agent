@@ -47,8 +47,17 @@ export function Composer({ busy, canSend, onSend }: Props) {
         <button
           type="button"
           className={voice.listening ? 'icon-button listening' : 'icon-button'}
-          title="Speak your question"
-          aria-label="Speak your question"
+          title={
+            voice.starting
+              ? 'Starting microphone…'
+              : voice.listening
+                ? 'Stop listening'
+                : 'Speak your question'
+          }
+          aria-label={voice.listening || voice.starting ? 'Stop listening' : 'Speak your question'}
+          aria-pressed={voice.listening || voice.starting}
+          aria-describedby={voice.error ? 'voice-error' : undefined}
+          disabled={busy || !canSend}
           onClick={voice.toggle}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -75,6 +84,11 @@ export function Composer({ busy, canSend, onSend }: Props) {
       <button type="submit" disabled={busy || !canSend}>
         Send
       </button>
+      {voice.error && (
+        <p id="voice-error" className="error-banner voice-error" role="alert">
+          {voice.error}
+        </p>
+      )}
     </form>
   );
 }

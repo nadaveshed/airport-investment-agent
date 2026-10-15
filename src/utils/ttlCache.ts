@@ -1,3 +1,5 @@
+/* Provides a bounded in-memory cache with expiry and optional access to stale entries. */
+
 interface Entry<V> {
   value: V;
   expiresAt: number;

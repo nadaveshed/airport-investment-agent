@@ -1,3 +1,5 @@
+/* Classifies airports by their share of US enplanements using FAA hub-size thresholds. */
+
 import type { HubSize } from '../types/airport.js';
 
 /**

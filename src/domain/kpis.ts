@@ -1,3 +1,5 @@
+/* Derives airport KPIs such as growth, load factor, delay rates, and fare indices from snapshot data. */
+
 import type { Airport, HubSize } from '../types/airport.js';
 import { cagr, ratio } from '../utils/math.js';
 

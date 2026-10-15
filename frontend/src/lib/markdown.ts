@@ -1,3 +1,5 @@
+/* Renders and sanitizes model Markdown and extracts plain text for spoken answers. */
+
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 

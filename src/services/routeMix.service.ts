@@ -1,3 +1,5 @@
+/* Provides airport route mixes and airport-pair traffic, explicitly identifying missing international inbound coverage. */
+
 import { computeRouteMix } from '../domain/routeMix.js';
 import type { AirportRepository } from '../repositories/airport.repository.js';
 import type { RouteInput, RouteMixInput } from '../schemas/airport.schema.js';

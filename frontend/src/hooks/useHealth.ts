@@ -1,3 +1,5 @@
+/* Fetches dataset metadata and provider configuration status from the health endpoint. */
+
 import { useEffect, useState } from 'react';
 import type { Health } from '../types';
 

@@ -1,3 +1,5 @@
+/* Tests reconstruction of chat bubbles and tool traces from stored conversation history. */
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { restoreMessages, type StoredMessage } from './history';

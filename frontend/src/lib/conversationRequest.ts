@@ -1,3 +1,5 @@
+/* Cancels superseded requests and prevents late events from an older request from changing the current conversation. */
+
 /** Only the current conversation may apply a response, even if abort arrives too late. */
 export class ConversationRequest {
   private active: AbortController | null = null;

@@ -1,3 +1,5 @@
+/* Reduces oversized model history by replacing older tool payloads while preserving user and assistant messages. */
+
 import type { ChatMessage } from '../types/chat.js';
 
 const OMITTED = JSON.stringify({

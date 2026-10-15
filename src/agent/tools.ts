@@ -1,3 +1,5 @@
+/* Defines model-callable tools, validates their arguments, and delegates execution to shared application services. */
+
 import type { ChatCompletionFunctionTool } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import {

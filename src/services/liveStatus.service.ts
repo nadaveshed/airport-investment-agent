@@ -1,3 +1,5 @@
+/* Fetches and validates live FAA airport status, caches it for two minutes, and labels stale fallback data. */
+
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import { UpstreamError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';

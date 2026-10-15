@@ -1,3 +1,5 @@
+/* Calculates long-haul shares and route lists separately for passenger and all-cargo departures. */
+
 import type { RouteSegment } from '../types/airport.js';
 import { round } from '../utils/math.js';
 

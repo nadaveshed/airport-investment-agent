@@ -1,3 +1,5 @@
+/* Manages English browser speech recognition, microphone states and errors, and browser speech playback. */
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // The Web Speech API is not in TypeScript's DOM types, so only the parts used here are declared.

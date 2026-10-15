@@ -1,3 +1,5 @@
+/* Defines supported US regions and maps each region to its state codes. */
+
 /** US Census divisions plus a few common groupings analysts use. Keys are lower-case for lookup. */
 export const REGIONS: Record<string, readonly string[]> = {
   'new england': ['CT', 'ME', 'MA', 'NH', 'RI', 'VT'],

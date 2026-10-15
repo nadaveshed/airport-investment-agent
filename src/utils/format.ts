@@ -1,3 +1,5 @@
+/* Formats KPI values into readable counts, percentages, prices, minutes, or indices. */
+
 import { KPI_DEFINITIONS, type KpiName } from '../domain/kpis.js';
 
 const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });

@@ -1,3 +1,5 @@
+/* Loads snapshot and constraint JSON files into memory and indexes airports and routes for lookup. */
+
 import { readFileSync } from 'node:fs';
 import type { Airport, AirportConstraint, RouteSegment, Snapshot } from '../types/airport.js';
 import type { AirportRepository, DatasetInfo } from './airport.repository.js';

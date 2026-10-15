@@ -1,3 +1,5 @@
+/* Opens chat sessions, runs agent turns, and saves conversation history only after a turn completes successfully. */
+
 import type { Agent, RunOptions } from '../agent/agent.js';
 import type { SessionRepository } from '../repositories/session.repository.js';
 import type { ChatRequest } from '../schemas/chat.schema.js';

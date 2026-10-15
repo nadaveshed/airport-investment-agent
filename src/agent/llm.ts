@@ -1,3 +1,5 @@
+/* Creates DeepSeek and Gemini clients in preference order through their OpenAI-compatible API endpoints. */
+
 import OpenAI from 'openai';
 import type { Env } from '../config/env.js';
 

@@ -1,3 +1,5 @@
+/* Defines application error classes with HTTP statuses and stable error codes. */
+
 /** Base class for expected, user-facing errors. Anything else is treated as an internal error. */
 export class AppError extends Error {
   constructor(

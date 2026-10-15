@@ -1,3 +1,5 @@
+/* Tests that superseded requests cannot update a new conversation or overwrite its loading state. */
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ConversationRequest } from './conversationRequest';

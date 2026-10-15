@@ -1,3 +1,5 @@
+/* Rebuilds chat bubbles and tool traces from server-stored conversation history after a reload. */
+
 import { errorOf, summarizeResult } from './toolResults';
 import type { AssistantMessage, Message, ToolStep } from '../types';
 

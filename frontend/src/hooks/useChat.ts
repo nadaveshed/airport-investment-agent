@@ -1,3 +1,5 @@
+/* Manages chat state, SSE updates, session restoration, request cancellation, and conversation reset. */
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { restoreMessages, type StoredMessage } from '../lib/history';
 import { ConversationRequest } from '../lib/conversationRequest';

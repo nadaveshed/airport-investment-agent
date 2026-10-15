@@ -1,3 +1,5 @@
+/* Defines scoring indices, KPI weights, comparison cohorts, and the default long-haul distance threshold. */
+
 import type { KpiName } from '../domain/kpis.js';
 
 export type IndexName = 'expansionOpportunity' | 'congestion' | 'unmetDemand';

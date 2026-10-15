@@ -1,3 +1,5 @@
+/* Parses SSE frames from a streamed fetch response so the chat can use POST instead of EventSource. */
+
 import type { ServerEvent } from '../types';
 
 /** Reads a fetch() response body as Server-Sent Events (the chat endpoint is a POST, so EventSource can't be used). */

@@ -1,3 +1,5 @@
+/* Applies scoring options and filters, then prepares scores, national and selected ranks, and display values. */
+
 import {
   INDEX_DEFINITIONS,
   type IndexDefinition,

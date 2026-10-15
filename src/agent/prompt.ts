@@ -1,3 +1,5 @@
+/* Builds the system prompt from dataset metadata and scoring configuration, including tool-use and explanation rules. */
+
 import { DEFAULT_LONG_HAUL_MILES, INDEX_DEFINITIONS } from '../config/scoring.config.js';
 import { KPI_DEFINITIONS, type KpiName } from '../domain/kpis.js';
 import type { DatasetInfo } from '../repositories/airport.repository.js';

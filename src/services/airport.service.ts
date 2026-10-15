@@ -1,3 +1,5 @@
+/* Precomputes airport KPIs and provides filtering, search, and profiles with source periods and constraints. */
+
 import { statesForRegion } from '../config/regions.js';
 import { computeKpis, KPI_DEFINITIONS, type AirportKpis, type KpiName } from '../domain/kpis.js';
 import type { AirportRepository } from '../repositories/airport.repository.js';

@@ -1,3 +1,5 @@
+/* Safely stores and retrieves only the chat session identifier in browser localStorage. */
+
 const SESSION_KEY = 'airport-agent-session';
 
 // Storage can be unavailable (private mode, blocked cookies); the session then just won't survive a reload.

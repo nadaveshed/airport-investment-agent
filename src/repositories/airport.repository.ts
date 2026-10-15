@@ -1,3 +1,5 @@
+/* Defines the airport data access contract used by services, independently of the storage implementation. */
+
 import type { Airport, AirportConstraint, RouteSegment, SourceInfo } from '../types/airport.js';
 
 export interface DatasetInfo {

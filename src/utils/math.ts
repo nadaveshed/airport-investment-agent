@@ -1,3 +1,5 @@
+/* Provides percentile ranking, compound annual growth, safe division, and display rounding helpers. */
+
 /**
  * Mid-rank percentile (0–100) of `value` within `population`: ties count half,
  * so identical values get identical percentiles and the result does not depend on order.

@@ -1,3 +1,5 @@
+/* Validates environment settings and supplies defaults for server, dataset, and model configuration. */
+
 import { z } from 'zod';
 
 const optionalKey = z

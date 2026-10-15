@@ -1,3 +1,5 @@
+/* Opens an HTTP SSE response and serializes named events as JSON frames. */
+
 import type { Response } from 'express';
 
 export interface SseStream {

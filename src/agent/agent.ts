@@ -1,3 +1,5 @@
+/* Runs the model/tool loop with up to six tool rounds, streamed events, cancellation, and provider fallback. */
+
 import OpenAI from 'openai';
 import type {
   ChatCompletionAssistantMessageParam,

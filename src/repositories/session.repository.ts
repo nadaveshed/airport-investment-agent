@@ -1,3 +1,5 @@
+/* Stores chat sessions in memory with sliding idle expiry and a maximum session count. */
+
 import { randomUUID } from 'node:crypto';
 import type { Session } from '../types/chat.js';
 import { TtlCache } from '../utils/ttlCache.js';

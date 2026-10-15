@@ -1,3 +1,5 @@
+/* Summarizes tool results and collects confidence and data periods for display in the UI. */
+
 import type { Confidence, ToolStep } from '../types';
 
 /** The fields of tool results the UI reads. Each tool returns a different subset. */

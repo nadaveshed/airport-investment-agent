@@ -1,3 +1,5 @@
+/* Computes weighted percentile scores, redistributes missing-data weights, and returns rankings and score explanations. */
+
 import type { IndexDefinition } from '../config/scoring.config.js';
 import { percentileRank, round } from '../utils/math.js';
 import { KPI_DEFINITIONS, type AirportKpis, type KpiName } from './kpis.js';
